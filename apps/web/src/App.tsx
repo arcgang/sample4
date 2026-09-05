@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LoginPage, type AuthSession } from "./LoginPage";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -202,11 +203,30 @@ function SessionStatus() {
 }
 
 export function App() {
+  const [session, setSession] = useState<AuthSession | null>(null);
+
   return (
     <main>
-      <h1>Fitness Store Checkout</h1>
-      <CheckoutForm />
-      <SessionStatus />
+      <header>
+        <h1>Fitness Hub</h1>
+      </header>
+
+      <section aria-label="Fitness Login">
+        <LoginPage onLoginSuccess={(s) => setSession(s)} />
+      </section>
+
+      <hr />
+
+      <section aria-label="Fitness Store">
+        <h2>Fitness Store Checkout</h2>
+        {session && (
+          <p>
+            Logged in as: <strong>{session.user.name}</strong>
+          </p>
+        )}
+        <CheckoutForm />
+        <SessionStatus />
+      </section>
     </main>
   );
 }
