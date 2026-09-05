@@ -5,6 +5,11 @@ import {
   createCheckoutSession,
   getCheckoutSession,
 } from "./payment.js";
+import {
+  getLoginInstructions,
+  validateGoogleAuthInput,
+  authenticateWithGoogle,
+} from "./auth.js";
 
 const port = Number(process.env.PORT ?? 3000);
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY ?? "";
@@ -35,6 +40,31 @@ createServer(async (req, res) => {
 
   if (url === "/health") {
     json(res, 200, health());
+    return;
+  }
+
+  // GET /auth/instructions — get instructions on how to login
+  if (url === "/auth/instructions" && req.method === "GET") {
+    json(res, 200, getLoginInstructions());
+    return;
+  }
+
+  // POST /auth/google — authenticate with Google
+  if (url === "/auth/google" && req.method === "POST") {
+    let body: unknown;
+    try {
+      body = await readBody(req);
+    } catch {
+      json(res, 400, { error: "Invalid JSON" });
+      return;
+    }
+    const validation = validateGoogleAuthInput(body);
+    if (!validation.valid) {
+      json(res, 400, { errors: validation.errors });
+      return;
+    }
+    const session = authenticateWithGoogle(validation.data);
+    json(res, 200, session);
     return;
   }
 
